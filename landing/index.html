@@ -1,14 +1,241 @@
-<!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Labryx - AI Workflow CLI</title></head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Labryx — AI Workflow Automation CLI</title>
+  <meta name="description" content="Build, run, and automate AI-powered workflows from your terminal. Free to start, Pro for teams." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --border: #1e1e2e;
+      --accent: #7c6ff7;
+      --accent2: #4fd1c5;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --green: #34d399;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* NAV */
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); max-width: 1100px; margin: 0 auto; }
+    .logo { font-weight: 800; font-size: 1.4rem; letter-spacing: -0.5px; color: #fff; }
+    .logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a { color: var(--muted); font-size: 0.9rem; }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+    .nav-cta { background: var(--accent); color: #fff !important; padding: 0.45rem 1.1rem; border-radius: 6px; font-weight: 600; }
+    .nav-cta:hover { opacity: 0.9; text-decoration: none; }
+
+    /* HERO */
+    .hero { text-align: center; padding: 6rem 2rem 4rem; max-width: 820px; margin: 0 auto; }
+    .badge { display: inline-block; background: rgba(124,111,247,0.15); border: 1px solid rgba(124,111,247,0.3); color: var(--accent); font-size: 0.8rem; font-weight: 600; padding: 0.3rem 0.9rem; border-radius: 99px; margin-bottom: 1.5rem; letter-spacing: 0.5px; text-transform: uppercase; }
+    h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); font-weight: 800; letter-spacing: -1px; line-height: 1.1; margin-bottom: 1.25rem; }
+    h1 em { color: var(--accent); font-style: normal; }
+    .hero p { font-size: 1.15rem; color: var(--muted); max-width: 560px; margin: 0 auto 2.5rem; }
+    .cta-row { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+    .btn-primary { background: var(--accent); color: #fff; font-weight: 700; padding: 0.85rem 2rem; border-radius: 8px; font-size: 1rem; border: none; cursor: pointer; transition: opacity 0.2s; }
+    .btn-primary:hover { opacity: 0.88; text-decoration: none; }
+    .btn-secondary { border: 1px solid var(--border); color: var(--text); font-weight: 600; padding: 0.85rem 2rem; border-radius: 8px; font-size: 1rem; background: transparent; cursor: pointer; }
+    .btn-secondary:hover { border-color: var(--accent); text-decoration: none; }
+
+    /* TERMINAL */
+    .terminal-wrap { max-width: 760px; margin: 4rem auto 0; padding: 0 1.5rem; }
+    .terminal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; text-align: left; }
+    .terminal-bar { display: flex; align-items: center; gap: 0.4rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red { background: #ff5f57; }
+    .dot-yellow { background: #febc2e; }
+    .dot-green { background: #28c840; }
+    .terminal-body { padding: 1.5rem 2rem; font-family: 'Fira Code', 'Cascadia Code', monospace; font-size: 0.87rem; line-height: 1.8; }
+    .prompt { color: var(--accent2); }
+    .cmd { color: #fff; }
+    .out { color: var(--muted); }
+    .highlight { color: var(--accent); }
+    .success { color: var(--green); }
+
+    /* FEATURES */
+    .section { max-width: 1100px; margin: 0 auto; padding: 5rem 2rem; }
+    .section-label { text-align: center; color: var(--muted); font-size: 0.8rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 1rem; }
+    h2 { text-align: center; font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight: 800; letter-spacing: -0.5px; margin-bottom: 3.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; }
+    .card-icon { font-size: 1.8rem; margin-bottom: 1rem; }
+    .card h3 { font-weight: 700; margin-bottom: 0.5rem; }
+    .card p { color: var(--muted); font-size: 0.9rem; }
+
+    /* PRICING */
+    .pricing-wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 760px; margin: 0 auto; }
+    .plan { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
+    .plan.featured { border-color: var(--accent); background: rgba(124,111,247,0.07); }
+    .plan-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+    .plan-label.accent { color: var(--accent); }
+    .plan-price { font-size: 2.4rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 0.25rem; }
+    .plan-price span { font-size: 1rem; font-weight: 400; color: var(--muted); }
+    .plan-desc { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .features-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.75rem; }
+    .features-list li { font-size: 0.9rem; display: flex; gap: 0.5rem; }
+    .features-list li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; }
+    .features-list li.dim::before { content: '✗'; color: var(--muted); }
+    .features-list li.dim { color: var(--muted); }
+    .btn-plan { display: block; text-align: center; padding: 0.8rem; border-radius: 8px; font-weight: 700; font-size: 0.95rem; }
+    .btn-plan.free { border: 1px solid var(--border); color: var(--text); }
+    .btn-plan.pro { background: var(--accent); color: #fff; }
+    .btn-plan:hover { opacity: 0.88; text-decoration: none; }
+
+    /* INSTALL */
+    .install-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2.5rem; text-align: center; max-width: 600px; margin: 0 auto; }
+    .install-box h2 { margin-bottom: 0.75rem; font-size: 1.8rem; }
+    .install-box p { color: var(--muted); margin-bottom: 1.5rem; }
+    .install-cmd { background: #0d0d16; border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.5rem; font-family: monospace; font-size: 1rem; color: var(--accent2); margin-bottom: 1.5rem; }
+
+    /* FOOTER */
+    footer { border-top: 1px solid var(--border); text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); }
+  </style>
+</head>
 <body>
-<h1>Labryx</h1>
-<p>Orchestrate AI-driven workflows from the terminal to a scalable SaaS.</p>
-<h2>Pricing</h2>
-<ul>
-  <li>Free: Basic CLI features</li>
-  <li>Pro: $29/mo - unlimited workflows, premium AI, team features</li>
-</ul>
-<p><strong>Get started</strong> by installing Labryx CLI and connecting to Labryx Pro.</p>
+
+<nav>
+  <div class="logo">L<span>A</span>BRYX</div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="https://github.com/labryxdev/labryx">GitHub</a>
+    <a href="#pricing" class="nav-cta">Get Pro</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="badge">⚡ Open source CLI · Free to start</div>
+  <h1>Automate workflows with <em>AI</em> from your terminal</h1>
+  <p>Labryx is a developer-first CLI for building, running, and scaling AI-powered workflows — no drag-and-drop required.</p>
+  <div class="cta-row">
+    <a href="#install" class="btn-primary">Install Free →</a>
+    <a href="https://github.com/labryxdev/labryx" class="btn-secondary">View on GitHub</a>
+  </div>
+</section>
+
+<div class="terminal-wrap">
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
+    </div>
+    <div class="terminal-body">
+      <div><span class="prompt">$</span> <span class="cmd">npm install -g labryx</span></div>
+      <div class="out">+ labryx@0.1.0 added 61 packages in 4s</div>
+      <br/>
+      <div><span class="prompt">$</span> <span class="cmd">labryx workflow --interactive</span></div>
+      <br/>
+      <div class="highlight">╦  ╔═╗╔╗ ╦═╗╦ ╦═╗</div>
+      <div class="highlight">║  ╠═╣╠╩╗╠╦╝╚╦╝╔╩╦╝</div>
+      <div class="highlight">╩═╝╩ ╩╚═╝╩╚═ ╩ ╩ ╚═</div>
+      <div class="out">AI Workflow Automation</div>
+      <br/>
+      <div class="out">? Workflow name: <span class="cmd">email-digest</span></div>
+      <div class="out">? Trigger: <span class="cmd">Schedule (cron)</span></div>
+      <div class="out">? Steps: <span class="cmd">AI text generation, Send email</span></div>
+      <br/>
+      <div class="success">✔ Workflow "email-digest" created!</div>
+      <div class="out">  Run it: labryx workflow --run email-digest.yaml</div>
+    </div>
+  </div>
+</div>
+
+<section class="section" id="features">
+  <div class="section-label">Why Labryx</div>
+  <h2>Everything you need to automate with AI</h2>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <h3>Instant Workflow Builder</h3>
+      <p>Build workflows interactively in the terminal. Pick triggers, steps, and outputs — no YAML boilerplate to memorize.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <h3>AI-Powered Generation</h3>
+      <p>Describe what you want in plain English. Labryx generates the workflow automatically using GPT-4 (Pro).</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔌</div>
+      <h3>Built-in Integrations</h3>
+      <p>Email, HTTP requests, file I/O, data transforms — and more integrations added every week on Pro.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📅</div>
+      <h3>Cloud Scheduling</h3>
+      <p>Set cron triggers and let Labryx run your workflows on schedule — no server required. Pro feature.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">👥</div>
+      <h3>Team Collaboration</h3>
+      <p>Share workflows, manage permissions, and collaborate with your team. Built for modern engineering teams.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛡️</div>
+      <h3>Open Source Core</h3>
+      <p>The CLI is fully open source. Audit it, extend it, contribute to it. Trust what you run in production.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="pricing">
+  <div class="section-label">Pricing</div>
+  <h2>Simple, honest pricing</h2>
+  <div class="pricing-wrap">
+    <div class="plan">
+      <div class="plan-label">Free</div>
+      <div class="plan-price">$0</div>
+      <div class="plan-desc">Everything you need to get started.</div>
+      <ul class="features-list">
+        <li>Interactive workflow builder</li>
+        <li>Basic templates (email, reports)</li>
+        <li>Local workflow execution</li>
+        <li>Open source — inspect everything</li>
+        <li class="dim">AI-powered generation</li>
+        <li class="dim">Cloud scheduling</li>
+        <li class="dim">Team features</li>
+      </ul>
+      <a href="#install" class="btn-plan free">Install Free</a>
+    </div>
+    <div class="plan featured">
+      <div class="plan-label accent">Pro</div>
+      <div class="plan-price">$29<span>/mo</span></div>
+      <div class="plan-desc">For teams that run workflows in production.</div>
+      <ul class="features-list">
+        <li>Unlimited workflows</li>
+        <li>AI generation with GPT-4</li>
+        <li>Cloud execution & scheduling</li>
+        <li>All integrations (Slack, Notion, Airtable…)</li>
+        <li>Team collaboration & permissions</li>
+        <li>Priority support</li>
+      </ul>
+      <a href="https://labryx.dev/pro" class="btn-plan pro">Upgrade to Pro →</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="install">
+  <div class="install-box">
+    <h2>Get started in 10 seconds</h2>
+    <p>Install globally via npm, then run your first workflow.</p>
+    <div class="install-cmd">npm install -g labryx</div>
+    <a href="https://github.com/labryxdev/labryx" class="btn-secondary" style="display:inline-block; padding: 0.8rem 2rem; border: 1px solid var(--border); border-radius: 8px; font-weight: 600;">
+      View Docs on GitHub →
+    </a>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 Labryx · <a href="https://github.com/labryxdev/labryx">GitHub</a> · Built by makers, for makers.</p>
+</footer>
+
 </body>
 </html>
