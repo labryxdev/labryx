@@ -1,16 +1,31 @@
 {
   "name": "labryx",
   "version": "0.1.0",
-  "description": "Labryx CLI: AI-driven workflow orchestration",
+  "description": "AI-powered workflow automation CLI — build, run, and automate workflows from the terminal",
   "main": "index.js",
+  "type": "module",
   "bin": {
     "labryx": "index.js"
   },
   "scripts": {
     "start": "node index.js",
-    "publish": "npm publish"
+    "test": "node index.js --version"
   },
-  "keywords": ["ai", "workflow", "cli"],
-  "author": "Labryx",
-  "license": "MIT"
+  "keywords": ["ai", "workflow", "automation", "cli", "pipeline", "orchestration"],
+  "author": "Labryx <hello@labryx.dev>",
+  "license": "MIT",
+  "homepage": "https://labryx.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/labryxdev/labryx"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^11.0.0",
+    "inquirer": "^9.0.0",
+    "ora": "^6.3.1"
+  }
 }
