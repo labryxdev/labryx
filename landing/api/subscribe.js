@@ -23,7 +23,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Labryx <onboarding@resend.dev>',
+        from: 'Labryx <hello@labryx.dev>',
         to: [email],
         subject: "You're on the Labryx list 🚀",
         html: `
