@@ -11,7 +11,14 @@
     "start": "node index.js",
     "test": "node index.js --version"
   },
-  "keywords": ["ai", "workflow", "automation", "cli", "pipeline", "orchestration"],
+  "keywords": [
+    "ai",
+    "workflow",
+    "automation",
+    "cli",
+    "pipeline",
+    "orchestration"
+  ],
   "author": "Labryx <hello@labryx.dev>",
   "license": "MIT",
   "homepage": "https://labryx.dev",
@@ -26,6 +33,7 @@
     "chalk": "^5.3.0",
     "commander": "^11.0.0",
     "inquirer": "^9.0.0",
+    "js-yaml": "^4.1.1",
     "ora": "^6.3.1"
   }
 }

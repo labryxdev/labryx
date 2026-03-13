@@ -3,8 +3,13 @@ import { program } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import ora from 'ora';
+import yaml from 'js-yaml';
+import { mkdirSync, writeFileSync, readdirSync, readFileSync, existsSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
 
 const VERSION = '0.1.0';
+const WORKFLOWS_DIR = join(homedir(), '.labryx', 'workflows');
 
 const logo = `
 ${chalk.cyan('╦  ╔═╗╔╗ ╦═╗╦ ╦═╗')}
@@ -33,8 +38,24 @@ program
       console.log(chalk.yellow(`Running workflow: ${opts.run}`));
       console.log(chalk.gray('(Pro feature — upgrade at labryx.dev/pro)'));
     } else if (opts.list) {
-      console.log(chalk.cyan('Saved workflows:'));
-      console.log(chalk.gray('  No workflows yet. Try: labryx workflow --interactive'));
+      console.log(chalk.cyan('Saved workflows:\n'));
+      if (!existsSync(WORKFLOWS_DIR)) {
+        console.log(chalk.gray('  No workflows yet. Try: labryx workflow --interactive'));
+      } else {
+        const files = readdirSync(WORKFLOWS_DIR).filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
+        if (files.length === 0) {
+          console.log(chalk.gray('  No workflows yet. Try: labryx workflow --interactive'));
+        } else {
+          files.forEach(f => {
+            try {
+              const doc = yaml.load(readFileSync(join(WORKFLOWS_DIR, f), 'utf8'));
+              console.log(`  ${chalk.white(doc.name || f)}  ${chalk.gray('trigger:')} ${chalk.yellow(doc.trigger || '—')}  ${chalk.gray('steps:')} ${chalk.yellow((doc.steps || []).length)}`);
+            } catch {
+              console.log(`  ${chalk.white(f)}  ${chalk.gray('(unreadable)')}`);
+            }
+          });
+        }
+      }
     } else {
       program.commands.find(c => c.name() === 'workflow').help();
     }
@@ -76,13 +97,28 @@ async function buildWorkflowInteractive() {
     ],
   }]);
 
+  const cleanSteps = steps.filter(s => !s.includes('Pro'));
+
   const spinner = ora('Building workflow...').start();
-  await new Promise(r => setTimeout(r, 1200));
-  spinner.succeed(chalk.green(`Workflow "${name}" created!`));
+
+  // Save workflow as YAML
+  mkdirSync(WORKFLOWS_DIR, { recursive: true });
+  const workflow = {
+    name,
+    trigger,
+    steps: cleanSteps.map(s => ({ action: s })),
+    created: new Date().toISOString(),
+  };
+  const filePath = join(WORKFLOWS_DIR, `${name}.yaml`);
+  writeFileSync(filePath, yaml.dump(workflow, { lineWidth: 120 }), 'utf8');
+
+  await new Promise(r => setTimeout(r, 800));
+  spinner.succeed(chalk.green(`Workflow "${name}" saved!`));
 
   console.log(chalk.cyan('\n📋 Summary:'));
   console.log(`  Trigger: ${chalk.white(trigger)}`);
-  console.log(`  Steps:   ${chalk.white(steps.filter(s => !s.includes('Pro')).join(', ') || 'none')}`);
+  console.log(`  Steps:   ${chalk.white(cleanSteps.join(', ') || 'none')}`);
+  console.log(`  File:    ${chalk.white(filePath)}`);
   console.log(`\n${chalk.bold('Run it:')} labryx workflow --run ${name}.yaml`);
   console.log(`${chalk.gray('Unlock unlimited workflows → labryx.dev/pro ($29/mo)')}`);
 }

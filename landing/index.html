@@ -233,6 +233,47 @@
   </div>
 </section>
 
+<section class="section" id="subscribe" style="padding-bottom: 3rem;">
+  <div style="max-width: 520px; margin: 0 auto; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem;">
+    <h2 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Stay in the loop</h2>
+    <p style="color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Get product updates, tips, and early access to new features. No spam.</p>
+    <form id="subscribe-form" style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;">
+      <input type="email" id="sub-email" required placeholder="you@example.com"
+        style="flex: 1; min-width: 220px; padding: 0.8rem 1rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.95rem; outline: none;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
+      <button type="submit" class="btn-primary" style="padding: 0.8rem 1.6rem; white-space: nowrap;">Subscribe →</button>
+    </form>
+    <p id="sub-msg" style="margin-top: 1rem; font-size: 0.85rem; color: var(--green); display: none;"></p>
+  </div>
+</section>
+<script>
+document.getElementById('subscribe-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const email = document.getElementById('sub-email').value;
+  const msg = document.getElementById('sub-msg');
+  try {
+    const res = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (data.success) {
+      msg.textContent = '✓ You\'re on the list!';
+      msg.style.color = 'var(--green)';
+      msg.style.display = 'block';
+      document.getElementById('sub-email').value = '';
+    } else {
+      throw new Error();
+    }
+  } catch {
+    msg.textContent = 'Something went wrong. Try again.';
+    msg.style.color = '#f87171';
+    msg.style.display = 'block';
+  }
+});
+</script>
+
 <footer>
   <p>© 2026 Labryx · <a href="https://github.com/labryxdev/labryx">GitHub</a> · Built by makers, for makers.</p>
 </footer>
