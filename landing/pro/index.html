@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Labryx Pro — Upgrade</title>
+  <meta name="description" content="Upgrade to Labryx Pro for AI generation, cloud scheduling, and team features." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0f; --surface: #13131a; --border: #1e1e2e;
+      --accent: #7c6ff7; --text: #e2e8f0; --muted: #64748b; --green: #34d399;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
+    .card { background: var(--surface); border: 1px solid var(--accent); border-radius: 20px; padding: 3rem 2.5rem; max-width: 480px; width: 100%; text-align: center; }
+    .logo { font-weight: 800; font-size: 1.3rem; letter-spacing: -0.5px; color: #fff; margin-bottom: 2rem; }
+    .logo span { color: var(--accent); }
+    h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
+    .price { font-size: 3.5rem; font-weight: 800; letter-spacing: -2px; margin: 1.5rem 0 0.25rem; }
+    .price span { font-size: 1.1rem; font-weight: 400; color: var(--muted); }
+    .price-note { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+    .features { list-style: none; text-align: left; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 0.85rem; }
+    .features li { display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.95rem; }
+    .features li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+    .btn { display: block; width: 100%; background: var(--accent); color: #fff; font-weight: 700; font-size: 1.1rem; padding: 1rem; border-radius: 10px; border: none; cursor: pointer; text-decoration: none; transition: opacity 0.2s; margin-bottom: 1rem; }
+    .btn:hover { opacity: 0.88; }
+    .guarantee { color: var(--muted); font-size: 0.8rem; }
+    .back { display: block; margin-top: 1.5rem; color: var(--muted); font-size: 0.85rem; text-decoration: none; }
+    .back:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">L<span>A</span>BRYX</div>
+    <h1>Upgrade to Pro</h1>
+    <p style="color: var(--muted); font-size: 0.95rem;">Everything in Free, plus the tools serious teams need.</p>
+
+    <div class="price">$29<span>/mo</span></div>
+    <div class="price-note">Cancel anytime. No lock-in.</div>
+
+    <ul class="features">
+      <li>Unlimited workflows</li>
+      <li>AI-powered generation with GPT-4</li>
+      <li>Cloud execution & cron scheduling</li>
+      <li>Slack, Notion, Airtable integrations</li>
+      <li>Team collaboration & permissions</li>
+      <li>Priority support</li>
+    </ul>
+
+    <a href="https://buy.stripe.com/labryx-pro" class="btn" id="checkout-btn">Upgrade Now →</a>
+    <div class="guarantee">🔒 Secured by Stripe · 7-day money-back guarantee</div>
+
+    <a href="/" class="back">← Back to labryx.dev</a>
+  </div>
+</body>
+</html>
