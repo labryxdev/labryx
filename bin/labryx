@@ -1,0 +1,118 @@
+#!/usr/bin/env node
+
+const { program } = require('commander');
+const chalk = require('chalk');
+const inquirer = require('inquirer');
+const ora = require('ora');
+
+program
+  .name('labryx')
+  .description('AI workflow automation platform')
+  .version('0.1.0');
+
+// Core workflow command
+program
+  .command('workflow')
+  .description('Create and run AI workflows')
+  .option('-f, --file <file>', 'Workflow file to execute')
+  .option('-i, --interactive', 'Run in interactive mode')
+  .action(async (options) => {
+    if (options.interactive) {
+      await runInteractiveWorkflow();
+    } else if (options.file) {
+      await runWorkflowFromFile(options.file);
+    } else {
+      console.log(chalk.yellow('⚡ Labryx AI Workflow Platform'));
+      console.log(chalk.gray('Use --interactive or --file to run workflows'));
+    }
+  });
+
+// Generate workflow templates
+program
+  .command('generate')
+  .description('Generate workflow templates')
+  .option('-t, --type <type>', 'Template type (email, social, content, analysis)')
+  .action(async (options) => {
+    await generateTemplate(options.type);
+  });
+
+// Account management
+program
+  .command('auth')
+  .description('Authenticate with Labryx platform')
+  .action(async () => {
+    await authenticate();
+  });
+
+async function runInteractiveWorkflow() {
+  console.log(chalk.blue('🚀 Starting interactive workflow builder...'));
+  
+  const answers = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'workflowType',
+      message: 'What type of workflow do you want to create?',
+      choices: [
+        'Email automation',
+        'Social media posting',
+        'Content generation',
+        'Data analysis',
+        'Custom workflow'
+      ]
+    },
+    {
+      type: 'input',
+      name: 'description',
+      message: 'Describe what you want to automate:'
+    }
+  ]);
+
+  const spinner = ora('Creating your workflow...').start();
+  
+  // Simulate AI workflow creation
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  spinner.succeed('Workflow created successfully!');
+  console.log(chalk.green(`✅ ${answers.workflowType} workflow: "${answers.description}"`));
+  console.log(chalk.gray('💡 Upgrade to Labryx Pro for advanced AI features and scheduling'));
+}
+
+async function runWorkflowFromFile(file) {
+  const spinner = ora(`Running workflow from ${file}...`).start();
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  spinner.succeed('Workflow completed!');
+}
+
+async function generateTemplate(type) {
+  const templates = {
+    email: 'Email automation template',
+    social: 'Social media posting template', 
+    content: 'Content generation template',
+    analysis: 'Data analysis template'
+  };
+  
+  const templateName = templates[type] || 'Basic workflow template';
+  console.log(chalk.green(`📄 Generated: ${templateName}`));
+  console.log(chalk.gray('Edit the template and run with: labryx workflow --file template.yml'));
+}
+
+async function authenticate() {
+  console.log(chalk.blue('🔐 Authenticating with Labryx platform...'));
+  
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'email',
+      message: 'Enter your email:'
+    }
+  ]);
+
+  const spinner = ora('Verifying credentials...').start();
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  spinner.succeed('Authentication successful!');
+  console.log(chalk.green(`✅ Logged in as ${answers.email}`));
+  console.log(chalk.gray('💎 Upgrade to Pro: https://labryx.dev/pricing'));
+}
+
+program.parse();

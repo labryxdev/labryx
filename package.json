@@ -1,0 +1,29 @@
+{
+  "name": "labryx",
+  "version": "0.1.0",
+  "description": "AI workflow automation platform - CLI to SaaS",
+  "main": "index.js",
+  "bin": {
+    "labryx": "./bin/labryx"
+  },
+  "scripts": {
+    "start": "node bin/labryx",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ai",
+    "workflow",
+    "automation",
+    "cli",
+    "productivity"
+  ],
+  "author": "labryxdev",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.0.0",
+    "axios": "^1.6.8",
+    "chalk": "^5.3.0",
+    "inquirer": "^9.2.15",
+    "ora": "^8.0.1"
+  }
+}
