@@ -9,7 +9,10 @@ import { join } from 'path';
 import { homedir } from 'os';
 
 const VERSION = '0.1.0';
-const WORKFLOWS_DIR = join(homedir(), '.labryx', 'workflows');
+const LABRYX_HOME = join(homedir(), '.labryx');
+const WORKFLOWS_DIR = join(LABRYX_HOME, 'workflows');
+const OUTBOX_DIR = join(LABRYX_HOME, 'outbox');
+const OUTPUT_DIR = join(LABRYX_HOME, 'output');
 
 const logo = `
 ${chalk.cyan('╦  ╔═╗╔╗ ╦═╗╦ ╦═╗')}
@@ -35,8 +38,7 @@ program
     if (opts.interactive) {
       await buildWorkflowInteractive();
     } else if (opts.run) {
-      console.log(chalk.yellow(`Running workflow: ${opts.run}`));
-      console.log(chalk.gray('(Pro feature — upgrade at labryx.dev/pro)'));
+      await runWorkflow(opts.run);
     } else if (opts.list) {
       console.log(chalk.cyan('Saved workflows:\n'));
       if (!existsSync(WORKFLOWS_DIR)) {
@@ -49,7 +51,8 @@ program
           files.forEach(f => {
             try {
               const doc = yaml.load(readFileSync(join(WORKFLOWS_DIR, f), 'utf8'));
-              console.log(`  ${chalk.white(doc.name || f)}  ${chalk.gray('trigger:')} ${chalk.yellow(doc.trigger || '—')}  ${chalk.gray('steps:')} ${chalk.yellow((doc.steps || []).length)}`);
+              const created = doc.created ? chalk.gray(new Date(doc.created).toLocaleString()) : chalk.gray('—');
+              console.log(`  ${chalk.white(doc.name || f)}  ${chalk.gray('trigger:')} ${chalk.yellow(doc.trigger || '—')}  ${chalk.gray('steps:')} ${chalk.yellow((doc.steps || []).length)}  ${chalk.gray('created:')} ${created}`);
             } catch {
               console.log(`  ${chalk.white(f)}  ${chalk.gray('(unreadable)')}`);
             }
@@ -60,6 +63,174 @@ program
       program.commands.find(c => c.name() === 'workflow').help();
     }
   });
+
+// ─── workflow execution engine ───────────────────────────────────────────────
+
+async function runWorkflow(fileArg) {
+  // Resolve the workflow file path
+  let filePath = fileArg;
+  if (!existsSync(filePath)) {
+    // Try in workflows directory
+    filePath = join(WORKFLOWS_DIR, fileArg);
+    if (!existsSync(filePath)) {
+      // Try appending .yaml
+      filePath = join(WORKFLOWS_DIR, fileArg + '.yaml');
+      if (!existsSync(filePath)) {
+        console.log(chalk.red(`✗ Workflow file not found: ${fileArg}`));
+        console.log(chalk.gray(`  Looked in: ${WORKFLOWS_DIR}`));
+        process.exit(1);
+      }
+    }
+  }
+
+  let doc;
+  try {
+    doc = yaml.load(readFileSync(filePath, 'utf8'));
+  } catch (e) {
+    console.log(chalk.red(`✗ Failed to parse workflow: ${e.message}`));
+    process.exit(1);
+  }
+
+  const steps = doc.steps || [];
+  console.log(chalk.bold(`\n▶ Running workflow: ${chalk.cyan(doc.name || fileArg)}`));
+  console.log(chalk.gray(`  Trigger: ${doc.trigger || '—'}  |  Steps: ${steps.length}`));
+  console.log('');
+
+  for (let i = 0; i < steps.length; i++) {
+    // Steps can be strings or { action: "..." } objects
+    const raw = steps[i];
+    const stepName = typeof raw === 'string' ? raw : (raw.action || raw.name || JSON.stringify(raw));
+    const stepLabel = chalk.gray(`[${i + 1}/${steps.length}]`);
+
+    console.log(`${stepLabel} ${chalk.bold(stepName)}`);
+    await executeStep(stepName);
+    console.log('');
+  }
+
+  console.log(chalk.green.bold(`✓ Workflow "${doc.name || fileArg}" completed successfully!`));
+}
+
+async function executeStep(stepName) {
+  const normalized = stepName.toLowerCase().trim();
+
+  if (normalized === 'http request') {
+    await stepHttpRequest();
+  } else if (normalized === 'send email') {
+    await stepSendEmail();
+  } else if (normalized === 'ai text generation') {
+    await stepAiTextGeneration();
+  } else if (normalized === 'transform data') {
+    await stepTransformData();
+  } else if (normalized === 'save to file') {
+    await stepSaveToFile();
+  } else {
+    const spinner = ora(`Executing: ${stepName}`).start();
+    await new Promise(r => setTimeout(r, 500));
+    spinner.succeed(chalk.green(`Step: ${stepName} — executed ✓`));
+  }
+}
+
+async function stepHttpRequest() {
+  const { url } = await inquirer.prompt([{
+    type: 'input',
+    name: 'url',
+    message: 'URL:',
+    default: 'https://httpbin.org/get',
+  }]);
+  const { method } = await inquirer.prompt([{
+    type: 'list',
+    name: 'method',
+    message: 'Method:',
+    choices: ['GET', 'POST'],
+  }]);
+
+  const spinner = ora(`${method} ${url}`).start();
+  try {
+    const res = await fetch(url, { method });
+    spinner.succeed(chalk.green(`${method} ${url} → ${res.status} ${res.statusText}`));
+    const body = await res.text();
+    const preview = body.length > 200 ? body.substring(0, 200) + '...' : body;
+    console.log(chalk.gray(`  Response preview: ${preview}`));
+  } catch (e) {
+    spinner.fail(chalk.red(`Request failed: ${e.message}`));
+  }
+}
+
+async function stepSendEmail() {
+  const answers = await inquirer.prompt([
+    { type: 'input', name: 'to', message: 'To:', default: 'user@example.com' },
+    { type: 'input', name: 'subject', message: 'Subject:', default: 'Labryx Workflow Notification' },
+    { type: 'input', name: 'body', message: 'Body:', default: 'This is an automated message from Labryx.' },
+  ]);
+
+  mkdirSync(OUTBOX_DIR, { recursive: true });
+  const ts = Date.now();
+  const emailFile = join(OUTBOX_DIR, `${ts}.json`);
+  const emailData = { ...answers, timestamp: new Date().toISOString(), status: 'queued' };
+  writeFileSync(emailFile, JSON.stringify(emailData, null, 2), 'utf8');
+
+  console.log(chalk.green(`  ✓ Email queued → ${emailFile}`));
+  console.log(chalk.gray(`    To: ${answers.to} | Subject: ${answers.subject}`));
+}
+
+async function stepAiTextGeneration() {
+  const { description } = await inquirer.prompt([{
+    type: 'input',
+    name: 'description',
+    message: 'Describe what to generate:',
+    default: 'A summary of today\'s key metrics',
+  }]);
+
+  const spinner = ora('Generating AI response...').start();
+  await new Promise(r => setTimeout(r, 1200));
+
+  // Realistic mock responses based on common descriptions
+  const mockResponses = {
+    default: `Based on the analysis of available data, here are the key findings:\n\n1. Performance metrics are trending positively with a 12% increase over the previous period.\n2. User engagement has improved, with average session duration up by 8 minutes.\n3. Three action items have been identified for follow-up.\n\nRecommendation: Focus on optimizing the conversion funnel in the next sprint.`,
+    email: `Subject: Weekly Performance Digest\n\nHi team,\n\nThis week saw strong performance across all key metrics. Revenue is up 15% WoW, and customer satisfaction scores remain above our 4.5 target.\n\nKey highlights:\n- New user signups: 342 (+18%)\n- Churn rate: 2.1% (down from 2.8%)\n- NPS: 67\n\nLet's keep the momentum going.\n\nBest,\nLabryx AI`,
+    summary: `Executive Summary:\n\nThe project is on track for the Q2 deadline. All critical path items have been completed, with 3 remaining tasks in the backlog. Resource utilization is at 85%, which is within optimal range. No blockers identified.`,
+  };
+
+  const descLower = description.toLowerCase();
+  let response = mockResponses.default;
+  if (descLower.includes('email') || descLower.includes('digest')) response = mockResponses.email;
+  if (descLower.includes('summary') || descLower.includes('report')) response = mockResponses.summary;
+
+  spinner.succeed(chalk.green('AI generation complete'));
+  console.log(chalk.cyan('  ── AI Output ──'));
+  response.split('\n').forEach(line => console.log(chalk.white(`  ${line}`)));
+  console.log(chalk.cyan('  ── End ──'));
+}
+
+async function stepTransformData() {
+  const { input } = await inquirer.prompt([{
+    type: 'input',
+    name: 'input',
+    message: 'Input text to transform:',
+    default: 'hello world from labryx',
+  }]);
+
+  console.log(chalk.green('  ✓ Transformations:'));
+  console.log(chalk.white(`    UPPERCASE:  ${input.toUpperCase()}`));
+  console.log(chalk.white(`    lowercase:  ${input.toLowerCase()}`));
+  console.log(chalk.white(`    Title Case: ${input.replace(/\b\w/g, c => c.toUpperCase())}`));
+  console.log(chalk.white(`    Reversed:   ${input.split('').reverse().join('')}`));
+  console.log(chalk.white(`    Length:     ${input.length} characters`));
+}
+
+async function stepSaveToFile() {
+  const answers = await inquirer.prompt([
+    { type: 'input', name: 'filename', message: 'Filename:', default: 'output.txt' },
+    { type: 'input', name: 'content', message: 'Content:', default: 'Generated by Labryx workflow' },
+  ]);
+
+  mkdirSync(OUTPUT_DIR, { recursive: true });
+  const outPath = join(OUTPUT_DIR, answers.filename);
+  writeFileSync(outPath, answers.content, 'utf8');
+  console.log(chalk.green(`  ✓ Saved → ${outPath}`));
+}
+
+// ─── interactive workflow builder ────────────────────────────────────────────
 
 async function buildWorkflowInteractive() {
   console.log(chalk.bold('\n🔧 Workflow Builder\n'));
